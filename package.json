@@ -15,6 +15,9 @@
     "@emotion/styled": "^11.14.1",
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
+    "@visx/visx": "^3.12.0",
+    "d3": "^7.9.0",
+    "d3-array": "^3.2.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
