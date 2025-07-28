@@ -1,5 +1,5 @@
 import { DefaultNode, Graph } from '@visx/network';
-import { ParentSize } from '@visx/responsive';
+import { useScreenSize } from '@visx/responsive';
 
 export interface NetworkProps {
   width: number;
@@ -37,19 +37,15 @@ const graph = {
 
 export const background = '#272b4d';
 
-const GraphViewer = (props: { parentWidth: number; parentHeight: number }) => {
-  const { parentWidth, parentHeight } = props;
+export const GraphViewer = () => {
+  const { width, height } = useScreenSize();
+
   return (
-    <svg width={parentWidth} height={parentHeight}>
-      <rect
-        width={parentWidth}
-        height={parentHeight}
-        rx={14}
-        fill={background}
-      />
+    <svg width={width} height={height}>
+      <rect width={width} height={height} rx={14} fill={background} />
       <Graph<CustomLink, CustomNode>
         graph={graph}
-        top={20}
+        top={0}
         left={0}
         nodeComponent={({ node: { color } }) =>
           color ? <DefaultNode fill={color} /> : <DefaultNode />
@@ -70,11 +66,3 @@ const GraphViewer = (props: { parentWidth: number; parentHeight: number }) => {
     </svg>
   );
 };
-
-export const graphViewer = (
-  <ParentSize>
-    {(parent) => (
-      <GraphViewer parentWidth={parent.width} parentHeight={parent.height} />
-    )}
-  </ParentSize>
-);
