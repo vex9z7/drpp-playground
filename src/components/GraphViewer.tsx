@@ -1,5 +1,8 @@
+import { localPoint } from '@visx/event';
 import { DefaultNode, Graph } from '@visx/network';
 import { useScreenSize } from '@visx/responsive';
+import { Zoom } from '@visx/zoom';
+import type { FC, ReactNode } from 'react';
 
 export interface NetworkProps {
   width: number;
@@ -37,32 +40,94 @@ const graph = {
 
 export const background = '#272b4d';
 
+const NetworkGraph = () => {
+  return (
+    <Graph<CustomLink, CustomNode>
+      graph={graph}
+      nodeComponent={({ node: { color } }) =>
+        color ? <DefaultNode fill={color} /> : <DefaultNode />
+      }
+      linkComponent={({ link: { source, target, dashed } }) => (
+        <line
+          x1={source.x}
+          y1={source.y}
+          x2={target.x}
+          y2={target.y}
+          strokeWidth={2}
+          stroke='#999'
+          strokeOpacity={0.6}
+          strokeDasharray={dashed ? '8,4' : undefined}
+        />
+      )}
+    />
+  );
+};
+
+interface DragableLayerProps {
+  width: number;
+  height: number;
+  scaleMin: number;
+  scaleMax: number;
+  children: ReactNode;
+}
+
+const DragableLayer: FC<DragableLayerProps> = (props) => {
+  const { width, height, children, scaleMin, scaleMax } = props;
+
+  return (
+    <Zoom<SVGSVGElement>
+      width={width}
+      height={height}
+      scaleXMin={scaleMin}
+      scaleXMax={scaleMax}
+      scaleYMin={scaleMin}
+      scaleYMax={scaleMax}
+    >
+      {(zoom) => {
+        return (
+          <svg
+            width={width}
+            height={height}
+            style={{
+              cursor: zoom.isDragging ? 'grabbing' : 'grab',
+              touchAction: 'none',
+            }}
+            ref={zoom.containerRef}
+          >
+            <rect width={width} height={height} fill={background} />
+            <g transform={zoom.toString()}>{children}</g>
+            <rect
+              width={width}
+              height={height}
+              fill='transparent'
+              onTouchStart={zoom.dragStart}
+              onTouchMove={zoom.dragMove}
+              onTouchEnd={zoom.dragEnd}
+              onMouseDown={zoom.dragStart}
+              onMouseMove={zoom.dragMove}
+              onMouseUp={zoom.dragEnd}
+              onMouseLeave={() => {
+                if (zoom.isDragging) zoom.dragEnd();
+              }}
+              onDoubleClick={(event) => {
+                const point = localPoint(event) ?? { x: 0, y: 0 };
+                // TODO: change the double click behavior
+                zoom.scale({ scaleX: 1.1, scaleY: 1.1, point });
+              }}
+            />
+          </svg>
+        );
+      }}
+    </Zoom>
+  );
+};
+
 export const GraphViewer = () => {
   const { width, height } = useScreenSize();
 
   return (
-    <svg width={width} height={height}>
-      <rect width={width} height={height} rx={14} fill={background} />
-      <Graph<CustomLink, CustomNode>
-        graph={graph}
-        top={0}
-        left={0}
-        nodeComponent={({ node: { color } }) =>
-          color ? <DefaultNode fill={color} /> : <DefaultNode />
-        }
-        linkComponent={({ link: { source, target, dashed } }) => (
-          <line
-            x1={source.x}
-            y1={source.y}
-            x2={target.x}
-            y2={target.y}
-            strokeWidth={2}
-            stroke='#999'
-            strokeOpacity={0.6}
-            strokeDasharray={dashed ? '8,4' : undefined}
-          />
-        )}
-      />
-    </svg>
+    <DragableLayer width={width} height={height} scaleMin={1 / 8} scaleMax={2}>
+      <NetworkGraph />
+    </DragableLayer>
   );
 };
