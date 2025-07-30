@@ -126,7 +126,7 @@ export const GraphViewer = () => {
   const { width, height } = useScreenSize();
 
   return (
-    <DragableLayer width={width} height={height} scaleMin={1 / 8} scaleMax={2}>
+    <DragableLayer width={width} height={height} scaleMin={1 / 2} scaleMax={2}>
       <NetworkGraph />
     </DragableLayer>
   );
