@@ -2,51 +2,43 @@ import { localPoint } from '@visx/event';
 import { DefaultNode, Graph } from '@visx/network';
 import { useScreenSize } from '@visx/responsive';
 import { Zoom } from '@visx/zoom';
-import type { FC, ReactNode } from 'react';
+import type { ComponentProps, FC, ReactNode } from 'react';
 
-export interface NetworkProps {
-  width: number;
-  height: number;
-}
+import { generateEuclideanGraph } from '../utils/generate-seedable-random-graph';
 
-interface CustomNode {
+const DEFAULT_NODE_COLOR = '#26deb0';
+const DEFAULT_EDGE_STROKE_COLOR = '#999';
+
+const utcTime = Date.now().toString();
+
+const graph = generateEuclideanGraph(utcTime);
+const uiGraph = graph.toUiGraph();
+
+export interface UiGraphNode {
   x: number;
   y: number;
   color?: string;
 }
 
-interface CustomLink {
-  source: CustomNode;
-  target: CustomNode;
+export interface UiGraphEdge {
+  source: UiGraphNode;
+  target: UiGraphNode;
+  color?: string;
   dashed?: boolean;
 }
 
-const nodes: CustomNode[] = [
-  { x: 50, y: 20 },
-  { x: 200, y: 250 },
-  { x: 300, y: 40, color: '#26deb0' },
-];
-
-const links: CustomLink[] = [
-  { source: nodes[0], target: nodes[1] },
-  { source: nodes[1], target: nodes[2] },
-  { source: nodes[2], target: nodes[0], dashed: true },
-];
-
-const graph = {
-  nodes,
-  links,
-};
+const UiGraph = Graph<UiGraphEdge, UiGraphNode>;
+export type UiGraphType = ComponentProps<typeof UiGraph>['graph'];
 
 export const background = '#272b4d';
 
 const NetworkGraph = () => {
   return (
-    <Graph<CustomLink, CustomNode>
-      graph={graph}
-      nodeComponent={({ node: { color } }) =>
-        color ? <DefaultNode fill={color} /> : <DefaultNode />
-      }
+    <UiGraph
+      graph={uiGraph}
+      nodeComponent={({ node: { x, y, color } }) => (
+        <DefaultNode x={x} y={y} fill={color ?? DEFAULT_NODE_COLOR} />
+      )}
       linkComponent={({ link: { source, target, dashed } }) => (
         <line
           x1={source.x}
@@ -54,7 +46,7 @@ const NetworkGraph = () => {
           x2={target.x}
           y2={target.y}
           strokeWidth={2}
-          stroke='#999'
+          stroke={DEFAULT_EDGE_STROKE_COLOR}
           strokeOpacity={0.6}
           strokeDasharray={dashed ? '8,4' : undefined}
         />
