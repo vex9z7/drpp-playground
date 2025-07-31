@@ -9,9 +9,23 @@ import { generateEuclideanGraph } from '../utils/generate-seedable-random-graph'
 const DEFAULT_NODE_COLOR = '#26deb0';
 const DEFAULT_EDGE_STROKE_COLOR = '#999';
 
-const utcTime = Date.now().toString();
+// see at http://www.cse.yorku.ca/~oz/hash.html
+const djb2 = (str: string): number => {
+  let hash = 5381;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash * 33) ^ str.charCodeAt(i);
+  }
+  // BUG: number is not integer
+  return hash >>> 0; // ensure unsigned 32-bit
+};
 
-const graph = generateEuclideanGraph(utcTime);
+const getRandomSeed = () => {
+  const utcTime = Date.now().toString();
+  const numHash = djb2(utcTime);
+  return numHash.toString(16).padStart(8, '0');
+};
+
+const graph = generateEuclideanGraph(getRandomSeed());
 const uiGraph = graph.toUiGraph();
 
 export interface UiGraphNode {
